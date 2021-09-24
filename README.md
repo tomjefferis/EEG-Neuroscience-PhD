@@ -1,2 +1,2 @@
-# EEG-Neuroscience-PhD
- Code related to my PhD.
+# Pattern Glare EEG Neuroscience PhD
+Forked from Cihan1994 in order to run analysis on different sections of the dataset
