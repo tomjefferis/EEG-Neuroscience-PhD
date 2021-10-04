@@ -1,18 +1,18 @@
 %% preprocessing pipeline for FieldTrip *** Author; Cihan Dogan
 clear all;
 restoredefaultpath;
-addpath('C:\External_Software\fieldtrip-20210807');
-addpath('C:\External_Software\spm12')
+addpath('W:\PhD\MatlabPlugins\fieldtrip-20210906'); %path to fieldtrip
+addpath('W:\PhD\MatlabPlugins\spm12') %path to spm
 ft_defaults;
-cd("D:\PhD");
-    
-%% Change these variables depending on what you would like to do.
-main_path = 'D:\PhD\participant_';
-to_preprocess = {'partitions'};
+cd("W:\PhD\PatternGlareCode");
+
+%%Vars needed ot edit for preprocessing
+main_path = 'W:\PhD\PatternGlareData\participants\participant_';
+to_preprocess = {'mean_intercept'};
 type_of_analysis = 'time_domain'; % or time_domain
 
 onsets = [
-    2,3; 4,5; 6,7
+    2,3,4,5,6,7,8
 ];
 number_of_onsets = size(onsets);
 number_of_onsets = number_of_onsets(1);
@@ -31,7 +31,7 @@ for k=to_preprocess
     [n_onsets, ~] = size(onsets);
     for i=1:n_onsets
         subset_onsets = onsets(i,:);
-        for participant = 1:n_participants
+        parfor participant = 1:n_participants
 
             %% gets the onsets of interest
             [thin, med, thick, description] = get_onsets(subset_onsets, analysis_type);
@@ -62,8 +62,8 @@ for k=to_preprocess
                 elseif strcmp(type_of_analysis, 'time_domain')
                     data_fname = strcat(data_structure, '_075_80Hz.dat');
                     data_structure = strcat(data_structure, '_075_80Hz.mat');  
-                    filter_freq = [0.1, 30];
-                    baseline_window = [-0.2 0];
+                    filter_freq = [0.1, 60];
+                    baseline_window = [3.7 3.9];
                 end
                 
                 file_main_path = strcat(participant_main_path, data_structure);
@@ -79,11 +79,11 @@ for k=to_preprocess
                 condition_names = label_data(thin, med, thick, participant_main_path,  data_structure, analysis_type);
 
                 %% load and convert from SPM > FieldTrip
-                load(file_main_path);
-                D.data.fname = strcat(participant_main_path, data_fname);
-                spm_eeg = meeg(D);
+                 filer = load(file_main_path);
+                filer.D.data.fname = strcat(participant_main_path, data_fname);
+                spm_eeg = meeg(filer.D);
                 raw = spm_eeg.ftraw;
-
+                spm_eeg = [];
                 %% setup the FT preprocessing fns
                 % filtering and baselining the data
                 cfg = [];
@@ -112,11 +112,11 @@ for k=to_preprocess
                 cfg.artfctdef.reject = 'complete';
                 cfg.artfctdef.zvalue.artifact = artifact;
                 postprocessed = ft_rejectartifact(cfg, data);
-
+                data = [];
                 % update with the proper trial names after artefact rejection
                 postprocessed = label_data_with_trials(raw, postprocessed);
-                postprocessed = relabel_conditions(postprocessed, D);
-                
+                postprocessed = relabel_conditions(postprocessed, filer.D);
+                filler = [];
                 % reject based on count of trials per condition
                 reject_participant = reject_particiapnt_based_on_bad_trials(postprocessed, raw);
                 if reject_participant == 1
@@ -126,11 +126,11 @@ for k=to_preprocess
 
                 % get the data ready for FT analysis
                 [trial_level, grand_averages] = data_ready_for_analysis(postprocessed, analysis_type);
-                
+                postprocessed = [];
                 % saves the grand average data (easier to load rather than
                 % trial level. Also saves trial level if needed.
-                save_data(grand_averages, participant_main_path, full_description, '_grand-average')
-                save_data(trial_level, participant_main_path, full_description, '_trial-level')
+                save_data(grand_averages, participant_main_path, full_description, '_grand-average_39')
+                save_data(trial_level, participant_main_path, full_description, '_trial-level_39')
 
                 disp(strcat('PROCESSED PARTICIPANT..',int2str(participant))); 
             end

@@ -1,22 +1,22 @@
 %% PATHS AND SETTING UP FIELDTRIP AND PATHS 
 clear classes;
-master_dir = 'D:\PhD\fieldtrip';
-main_path = 'D:\PhD\participant_';
-results_dir = 'D:\PhD\results';
-%rmpath 'C:\External_Software\spm8';
-%addpath 'C:\External_Software\spm12';
-addpath 'C:\External_Software\fieldtrip-20210807';
+master_dir = 'W:\PhD\msterdir';
+main_path = 'W:\PhD\PatternGlareData\participants\participant_';
+results_dir = 'W:\PhD\PatternGlareData\Results';
+%rmpath 'W:\PhD\MatlabPlugins\spm8';
+%addpath 'W:\PhD\MatlabPlugins\spm12';
+addpath 'W:\PhD\MatlabPlugins\fieldtrip-20210906';
 ft_defaults;
 cd(master_dir);
 
 %% WHAT TYPE OF EXPERIMENT(s) ARE WE RUNNING?
-experiment_types = {'partitions-2-8'};   
-desired_design_mtxs = {'headache'};
-start_latency = 0.056;
-end_latency = 0.256;
+experiment_types = {'onsets-2-8-explicit'};   
+desired_design_mtxs = {'no-factor'}; %
+start_latency = -0.20;
+end_latency = 3.9;
 
 %% SHALL WE APPLY A ROI, IF SO HOW?
-region_of_interest = 1;
+region_of_interest = 0;
 roi_applied = 'two-tailed';
 weight_roi = 0;
 roi_to_apply = 0;
@@ -27,7 +27,7 @@ weight_erps = 1; % weights based on quartiles
 weighting_factor = 0.00; % weights based on quartiles
 
 %% CHOOSE THE TYPE OF ANALYSIS EITHER 'frequency_domain' or 'time_domain'
-type_of_analysis = 'frequency_domain';
+type_of_analysis = 'time_domain';
 
 if strcmp(type_of_analysis, 'frequency_domain')
     disp('RUNNING A FREQUENCY-DOMAIN ANALYSIS');
@@ -58,11 +58,11 @@ for i = 1:numel(experiment_types)
         %% Are we looking at onsets 2-8 or partitions
         % set up the experiment as needed
         if strcmp(experiment_type, 'onsets-2-8-explicit')
-            data_file = 'mean_intercept_onsets_2_3_4_5_6_7_8_grand-average.mat';
+            data_file = 'time_domain_mean_intercept_onsets_2_3_4_5_6_7_8_grand-average_baseline_3.mat';
             regressor = 'ft_statfun_depsamplesT';
             n_participants = 40;
-            start_latency = 0.056;
-            end_latency = 0.256;
+            start_latency = -0.2;
+            end_latency = 3.9;
 
             partition.is_partition = 0;
             partition.partition_number = 0;
@@ -395,8 +395,8 @@ for i = 1:numel(experiment_types)
         end
         %% setup FT analysis
         % we have to switch to SPM8 to use some of the functions in FT
-        addpath 'C:\External_Software\spm8';
-        rmpath 'C:\External_Software\spm12';
+        addpath 'W:\PhD\MatlabPlugins\spm8';
+        rmpath 'W:\PhD\MatlabPlugins\spm12';
 
         % we need to tell fieldtrip how our electrodes are structured
         cfg = [];
@@ -414,7 +414,7 @@ for i = 1:numel(experiment_types)
         cfg.correctm = 'cluster';
         cfg.neighbours = neighbours;
         cfg.clusteralpha = 0.025;
-        cfg.numrandomization = 5000;
+        cfg.numrandomization = 1;
         cfg.tail = roi_to_apply; 
         cfg.design = design_matrix;
         cfg.computeprob = 'yes';
@@ -427,9 +427,9 @@ for i = 1:numel(experiment_types)
             cfg.uvar = 1;
             cfg.ivar = 2;
             null_data = set_values_to_zero(data); % create null data to hack a t-test
-            stat = ft_timelockstatistics(cfg, data{:}, null_data{:});
+            stat = ft_timelockstatistics(cfg, data{:},null_data{:});
             desired_cluster =1;
-            get_region_of_interest_electrodes(stat, desired_cluster, experiment_type, roi_applied);
+            %get_region_of_interest_electrodes(stat, desired_cluster, experiment_type, roi_applied);
         elseif contains(experiment_type, 'partitions') || contains(experiment_type, 'onsets-2-8-factor') ...
                 || contains(experiment_type, 'onsets-1-factor') || contains(experiment_type, 'erps-23-45-67') ...
                 || contains(experiment_type, 'coarse-vs-fine-granularity') || contains(experiment_type, 'Partitions')
@@ -1415,9 +1415,9 @@ function generate_plots(master_dir, main_path, experiment_type, start_peak, ...
     pvalue, cluster_size, save_dir, effect_type, weight_erps, weighting_factor);
 
     
-    plotting_window = [-100, 300];
-    rmpath C:\ProgramFiles\spm8;
-    addpath C:\ProgramFiles\spm12;
+    plotting_window = [2800, 4000];
+    rmpath W:\PhD\MatlabPlugins\spm8;
+    addpath W:\PhD\MatlabPlugins\spm12;
     cd(master_dir);
 
     %% Are we looking at onsets 2-8 or partitions
@@ -1429,7 +1429,7 @@ function generate_plots(master_dir, main_path, experiment_type, start_peak, ...
         partition.partition_number = 0;
 
 
-        data_file = 'mean_intercept_onsets_2_3_4_5_6_7_8_grand-average.mat';
+        data_file = 'time_domain_mean_intercept_onsets_2_3_4_5_6_7_8_grand-average_baseline_2.mat';
        [data, ~] = load_postprocessed_data(main_path, n_participants, ...
             data_file, partition);
         e_idx = find(contains(data{1}.label,peak_electrode));
@@ -2200,7 +2200,7 @@ function ci = bootstrap_erps(data, e_idx)
         for k=1:numel(fields)
            time_series_name = fields{k}; 
            participant_level.series = p.(fields{k});
-           participant_level.weighting = p.weighting;
+           participant_level.weighting = 1;
            
            if contains(time_series_name, 'med')
                 participant_level.series = participant_level.series(e_idx,:);
