@@ -31,8 +31,8 @@ for k=to_preprocess
     [n_onsets, ~] = size(onsets);
     for i=1:n_onsets
         subset_onsets = onsets(i,:);
-        parfor participant = 1:n_participants
-
+        %parfor participant = 1:n_participants
+        for participant = 1:n_participants % use if dbugging
             %% gets the onsets of interest
             [thin, med, thick, description] = get_onsets(subset_onsets, analysis_type);
             full_description = strcat(analysis_type, '_', description{1});

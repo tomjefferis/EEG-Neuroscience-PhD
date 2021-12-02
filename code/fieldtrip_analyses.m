@@ -11,9 +11,9 @@ cd(master_dir);
 
 %% WHAT TYPE OF EXPERIMENT(s) ARE WE RUNNING?
 experiment_types = {'onsets-2-8-explicit'};   
-desired_design_mtxs = {'no-factor'}; %
-start_latency = -0.20;
-end_latency = 3.9;
+desired_design_mtxs = {'visual_stress'}; %
+start_latency = 3.45;
+end_latency = 3.83;
 
 %% SHALL WE APPLY A ROI, IF SO HOW?
 region_of_interest = 0;
@@ -58,11 +58,11 @@ for i = 1:numel(experiment_types)
         %% Are we looking at onsets 2-8 or partitions
         % set up the experiment as needed
         if strcmp(experiment_type, 'onsets-2-8-explicit')
-            data_file = 'time_domain_mean_intercept_onsets_2_3_4_5_6_7_8_grand-average_baseline_3.mat';
+            data_file = 'time_domain_mean_intercept_onsets_2_3_4_5_6_7_8_grand-average_baseline_2.mat';
             regressor = 'ft_statfun_depsamplesT';
             n_participants = 40;
-            start_latency = -0.2;
-            end_latency = 3.9;
+            start_latency = 3.1;
+            end_latency = 3.4;
 
             partition.is_partition = 0;
             partition.partition_number = 0;
@@ -779,7 +779,7 @@ function calculate_cluster_size(stat, desired_cluster, ptitle, xlim_t, type, sav
     xlabel('Time (ms)');
     ylabel('Percentage of cluster');
     %xlim([0,260])
-    xlim([0,xlim_t])
+    xlim([3000 3400])
     title(ptitle, 'FontSize', 14); 
    
     set(gcf,'Position',[100 100 1000 1000])
